@@ -1,0 +1,80 @@
+services:
+  node-red:
+    container_name: weather_node-red
+    image: nodered/node-red:latest
+    environment:
+      - TZ=Europe/Amsterdam
+    ports:
+      - "1880:1880"
+    networks:
+      - weather-net
+    volumes:
+      - node-red-data:/data
+  zookeeper:
+    container_name: weather_zookeeper
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - '2181:2181'
+    networks:
+      - weather-net
+
+  kafka:
+    container_name: weather_kafka
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    ports:
+      - '9092:9092'
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - weather-net
+  mongodb:
+    container_name: weather_mongodb
+    image: mongo:4.4
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ahmed
+      MONGO_INITDB_ROOT_PASSWORD: ahmed
+    networks:
+      - weather-net
+  mongo-express:
+    image: mongo-express
+    container_name: weather_mongo_express
+    restart: unless-stopped
+    ports:
+      - '8081:8081'
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=ahmed
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=ahmed
+      - ME_CONFIG_MONGODB_SERVER=weather_mongodb
+      - ME_CONFIG_BASICAUTH_USERNAME=ahmed
+      - ME_CONFIG_BASICAUTH_PASSWORD=ahmed
+    networks:
+      - weather-net
+  spring-weather-service:
+    image: ahmedevops/spring-weather:latest
+    container_name: spring-weather-service
+    depends_on:
+      - mongodb
+      - kafka
+    restart: always
+    networks:
+      - weather-net
+networks:
+  weather-net:
+    driver: bridge
+volumes:
+  mongo:
+  node-red-data:
