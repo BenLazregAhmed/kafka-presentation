@@ -10,6 +10,8 @@ services:
       - weather-net
     volumes:
       - node-red-data:/data
+    depends_on:
+      - kafka
   zookeeper:
     container_name: weather_zookeeper
     image: confluentinc/cp-zookeeper:latest
