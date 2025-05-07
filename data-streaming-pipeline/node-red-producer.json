@@ -1,47 +1,123 @@
 [
-  {
-    "id": "f4f2d0a0e9d178e8",
-    "type": "kafkajs-producer",
-    "z": "bdf73959dc50999c",
-    "d": true,
-    "name": "kafka weather produce",
-    "client": "68f214e042caa16c",
-    "topic": "weather-data",
-    "advancedoptions": true,
-    "acknowledge": "all",
-    "partition": "",
-    "headeritems": {},
-    "key": "",
-    "responsetimeout": 30000,
-    "transactiontimeout": 60000,
-    "metadatamaxage": 300000,
-    "allowautotopiccreation": true,
-    "x": 780,
-    "y": 340,
-    "wires": []
-  },
-  {
-    "id": "68f214e042caa16c",
-    "type": "kafkajs-client",
-    "name": "weather",
-    "brokers": "weather_kafka:9092",
-    "clientid": "weather-client",
-    "connectiontimeout": 3000,
-    "requesttimeout": 25000,
-    "advancedretry": false,
-    "maxretrytime": 30000,
-    "initialretrytime": 300,
-    "factor": 0.2,
-    "multiplier": 2,
-    "retries": 5,
-    "auth": "none",
-    "tlsselfsign": false,
-    "tlscacert": "",
-    "tlsclientcert": "",
-    "tlsprivatekey": "",
-    "tlspassphrase": "",
-    "saslssl": true,
-    "saslmechanism": "plain",
-    "loglevel": "error"
-  }
+    {
+        "id": "3c2238f4ccf1875a",
+        "type": "tab",
+        "label": "Flow 8",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "inject_weather",
+        "type": "inject",
+        "z": "3c2238f4ccf1875a",
+        "name": "Simulate Weather",
+        "props": [],
+        "repeat": "5",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "",
+        "topic": "",
+        "x": 130,
+        "y": 220,
+        "wires": [
+            [
+                "function_weather"
+            ]
+        ]
+    },
+    {
+        "id": "function_weather",
+        "type": "function",
+        "z": "3c2238f4ccf1875a",
+        "name": "Random Weather Data",
+        "func": "// Function to generate a random temperature in Celsius and convert to Fahrenheit\nfunction getRandomTemperature() {\n    let tempCelsius = (Math.random() * (35 - 10) + 10).toFixed(1); // Random value as string\n\n    // Convert tempCelsius from string to number before performing arithmetic\n    let tempCelsiusNumber = parseFloat(tempCelsius);  // Convert string to number\n\n    return (tempCelsiusNumber * 9 / 5 + 32).toFixed(1); \n    }\n\n// Function to generate a random humidity percentage between 30% and 90%\nfunction getRandomHumidity() {\n    return Math.floor(Math.random() * (90 - 30 + 1) + 30);  // Random value between 30 and 90\n}\n\n// Function to generate a random wind speed in km/h and convert to miles per hour\n// Function to generate random wind speed in km/h and convert to miles per hour\nfunction getRandomWindSpeed() {\n    // Generate random wind speed between 5 and 20 km/h\n    let windSpeedKmH = (Math.random() * (20 - 5) + 5).toFixed(1); // Random value between 5 and 20 km/h\n\n    // Convert wind speed to number\n    let windSpeedKmHNumber = parseFloat(windSpeedKmH);\n\n    // Convert km/h to miles per hour (1 km/h = 0.621371 mph)\n    return (windSpeedKmHNumber * 0.621371).toFixed(1);  // Convert to miles per hour and return\n}\n\n\n// Function to get a random weather condition from a list\nfunction getRandomCondition() {\n    const conditions = [\"Sunny\", \"Cloudy\", \"Rainy\", \"Stormy\", \"Windy\"];\n    return conditions[Math.floor(Math.random() * conditions.length)];\n}\n\n// Generate random location for weather data (e.g., Tokyo)\nfunction getRandomLocation() {\n    return {\n        latitude: (Math.random() * (40.0 - 30.0) + 30.0).toFixed(4),  // Random latitude between 30.0 and 40.0\n        longitude: (Math.random() * (140.0 - 130.0) + 130.0).toFixed(4),  // Random longitude between 130.0 and 140.0\n        city: \"Tokyo\",  // Fixed city for simplicity\n        country: \"Japan\"  // Fixed country for simplicity\n    };\n}\n\n// Prepare the random weather data to inject\nvar weatherData = {\n    sensorId: \"sensor-\" + Math.floor(Math.random() * 1000),  // Generate random sensor ID\n    temperature: getRandomTemperature(),  // Random temperature in Fahrenheit\n    humidity: getRandomHumidity(),  // Random humidity\n    windSpeed: getRandomWindSpeed(),  // Random wind speed in mph\n    condition: getRandomCondition(),  // Random weather condition\n    timestamp: new Date().toISOString(),  // Current timestamp\n    location: getRandomLocation(),  // Random location\n    units: {\n        temperature: \"F\",  // Fahrenheit for temperature\n        wind_speed: \"mph\"  // miles per hour for wind speed\n    }\n};\n\n// Send the generated data to the next node\nmsg.payload = weatherData;\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 220,
+        "wires": [
+            [
+                "debug_weather",
+                "a2f1225c2f0efb6d"
+            ]
+        ]
+    },
+    {
+        "id": "debug_weather",
+        "type": "debug",
+        "z": "3c2238f4ccf1875a",
+        "name": "Simulated Weather Output",
+        "active": true,
+        "console": "false",
+        "complete": "payload",
+        "x": 740,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "0a90df74a15e01b2",
+        "type": "kafkajs-producer",
+        "z": "3c2238f4ccf1875a",
+        "d": true,
+        "name": "kafka weather produce",
+        "client": "68f214e042caa16c",
+        "topic": "weather-data",
+        "advancedoptions": true,
+        "acknowledge": "all",
+        "partition": "",
+        "headeritems": {},
+        "key": "",
+        "responsetimeout": 30000,
+        "transactiontimeout": 60000,
+        "metadatamaxage": 300000,
+        "allowautotopiccreation": true,
+        "x": 780,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "a2f1225c2f0efb6d",
+        "type": "json",
+        "z": "3c2238f4ccf1875a",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 550,
+        "y": 320,
+        "wires": [
+            [
+                "0a90df74a15e01b2"
+            ]
+        ]
+    },
+    {
+        "id": "68f214e042caa16c",
+        "type": "kafkajs-client",
+        "name": "weather",
+        "brokers": "localhost:9092",
+        "clientid": "weather-client",
+        "connectiontimeout": 3000,
+        "requesttimeout": 25000,
+        "advancedretry": false,
+        "maxretrytime": 30000,
+        "initialretrytime": 300,
+        "factor": 0.2,
+        "multiplier": 2,
+        "retries": 5,
+        "auth": "none",
+        "tlsselfsign": false,
+        "tlscacert": "",
+        "tlsclientcert": "",
+        "tlsprivatekey": "",
+        "tlspassphrase": "",
+        "saslssl": true,
+        "saslmechanism": "plain",
+        "loglevel": "error"
+    }
 ]
